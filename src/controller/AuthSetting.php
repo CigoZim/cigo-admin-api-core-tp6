@@ -36,9 +36,9 @@ trait AuthSetting
         }
 
         // 添加节点
-        UserMgAuthRule::create($this->args);
-
-        return $this->makeApiReturn('添加成功');
+        $rule = UserMgAuthRule::create($this->args);
+        $rule = (new UserMgAuthRule())->where('id', $rule->id)->find();
+        return $this->makeApiReturn('添加成功', $rule);
     }
 
     /**
@@ -80,6 +80,31 @@ trait AuthSetting
             'status' => $this->args['status'],
         ]);
         return $this->makeApiReturn($this->makeStatusTips());
+    }
+
+
+    /**
+     * 获取权限节点列表
+     */
+    protected function getAuthRuleList()
+    {
+        isset($this->args['status'])
+            ? $map[] = ['status', 'in', $this->args['status']]
+            : $map[] = ['status', '<>', -1];
+        $map[] = ['module', '=', empty($this->args['module']) ? 'admin' : $this->args['module']];
+        $map[] = ['type', 'in', empty($this->args['type']) ? '0' : $this->args['type']];
+
+        $model = (new UserMgAuthRule())->where($map);
+        $count = $model->count();
+        $dataList = $model->order('pid asc, sort desc, id asc')->select();
+        $treeList = [];
+        if ($dataList) {
+            $this->convertToTree($dataList, $treeList, 0, 'pid', false);
+        }
+        return $this->makeApiReturn('获取成功', [
+            'count' => $count,
+            'dataList' => $treeList
+        ]);
     }
 
     /**

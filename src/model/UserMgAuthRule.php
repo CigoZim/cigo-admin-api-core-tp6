@@ -1,5 +1,6 @@
 <?php
-declare (strict_types=1);
+
+declare(strict_types=1);
 
 namespace cigoadmin\model;
 
@@ -33,6 +34,7 @@ class UserMgAuthRule extends Model
         if (empty($map)) {
             $map = [
                 ['module', '=', 'admin'],
+                ['type', 'in', '0,2'],
                 ['status', '<>', -1]
             ];
         }
@@ -59,6 +61,7 @@ class UserMgAuthRule extends Model
         if (empty($map)) {
             $map = [
                 ['module', '=', 'admin'],
+                ['type', 'in', '0,2'],
                 ['status', '<>', -1]
             ];
         }
