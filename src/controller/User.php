@@ -7,7 +7,9 @@ use cigoadmin\library\ErrorCode;
 use cigoadmin\library\HttpReponseCode;
 use cigoadmin\library\traites\ApiCommon;
 use cigoadmin\model\User as UserModel;
+use cigoadmin\model\UserFeedback;
 use cigoadmin\model\UserLoginRecord;
+use cigoadmin\validate\AddFeedBack;
 use cigoadmin\validate\AddUser;
 use cigoadmin\validate\EditUser;
 use cigoadmin\validate\ListPage;
@@ -364,13 +366,14 @@ trait User
     protected function doLogout()
     {
         //检查用户是否存在
-        $user = (new UserModel())->where('token', Request::instance()->header('cigo-token'))->findOrEmpty();
-        if (!$user->isEmpty()) {
+        if (!empty(Request::instance()->userInfo)) {
+            $user =  Request::instance()->userInfo;
             $token = $user->token;
             $user->token = '';
             $user->token_create_time = 0;
+            $user->is_online = 0;
             $user->save();
-            Cache::delete('user_token_' . $this->moduleName . '_' . $token);
+            Cache::delete('user_token_' . $this->moduleName . '_' . $token); //TODO 把token缓存利用起来
         }
 
         return $this->makeApiReturn('退出成功');

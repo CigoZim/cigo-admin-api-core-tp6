@@ -30,11 +30,11 @@ class Encrypt
         openssl_pkey_export($res, $privateKey);
         $publicKeyInfo = openssl_pkey_get_details($res);
 
-        $privateKeyStr = preg_replace('/' . config('cigo.PRIVATE_KEY_BEGIN') . '/i', '', $privateKey);
-        $privateKeyStr = preg_replace('/' . config('cigo.PRIVATE_KEY_END') . '/i', '', $privateKeyStr);
+        $privateKeyStr = preg_replace('/' . config('cigoadmin.PRIVATE_KEY_BEGIN') . '/i', '', $privateKey);
+        $privateKeyStr = preg_replace('/' . config('cigoadmin.PRIVATE_KEY_END') . '/i', '', $privateKeyStr);
 
-        $publicKeyStr = preg_replace('/' . config('cigo.PUBLIC_KEY_BEGIN') . '/i', '', $publicKeyInfo["key"]);
-        $publicKeyStr = preg_replace('/' . config('cigo.PUBLIC_KEY_END') . '/i', '', $publicKeyStr);
+        $publicKeyStr = preg_replace('/' . config('cigoadmin.PUBLIC_KEY_BEGIN') . '/i', '', $publicKeyInfo["key"]);
+        $publicKeyStr = preg_replace('/' . config('cigoadmin.PUBLIC_KEY_END') . '/i', '', $publicKeyStr);
 
         return array(
             'rsaPrivateKey' => trim(str_replace("\n", "", $privateKeyStr)),
@@ -52,7 +52,7 @@ class Encrypt
     public static function rsaEncryptByPublicKey($rsaPublicKey, $plainStr, &$encryptedStr)
     {
 
-        $publicKey = config('cigo.PUBLIC_KEY_BEGIN') . trim($rsaPublicKey) . config('cigo.PUBLIC_KEY_END');
+        $publicKey = config('cigoadmin.PUBLIC_KEY_BEGIN') . trim($rsaPublicKey) . config('cigoadmin.PUBLIC_KEY_END');
         $keyResId = openssl_pkey_get_public($publicKey);
 
         openssl_public_encrypt(trim($plainStr), $encryptedStr, $keyResId);
@@ -70,7 +70,7 @@ class Encrypt
      */
     public static function rsaDecryptByPrivateKey($rsaPrivateKey, $encryptedStr, &$plainStr)
     {
-        $private_key = config('cigo.PRIVATE_KEY_BEGIN') . trim($rsaPrivateKey) . config('cigo.PRIVATE_KEY_END');
+        $private_key = config('cigoadmin.PRIVATE_KEY_BEGIN') . trim($rsaPrivateKey) . config('cigoadmin.PRIVATE_KEY_END');
         $keyResId = openssl_pkey_get_private($private_key);
 
         $encryptedStr = urldecode(trim($encryptedStr));
@@ -90,7 +90,7 @@ class Encrypt
      */
     public static function rsaEncryptByPrivateKey($rsaPrivateKey, $plainStr, &$encryptedStr)
     {
-        $private_key = config('cigo.PRIVATE_KEY_BEGIN') . trim($rsaPrivateKey) . config('cigo.PUBLIC_KEY_BEGIN');
+        $private_key = config('cigoadmin.PRIVATE_KEY_BEGIN') . trim($rsaPrivateKey) . config('cigoadmin.PUBLIC_KEY_BEGIN');
         $keyResId = openssl_pkey_get_private($private_key);
 
         openssl_private_encrypt(trim($plainStr), $encryptedStr, $keyResId);
@@ -108,7 +108,7 @@ class Encrypt
      */
     public static function rsaDecryptByPublicKey($rsaPublicKey, $encryptedStr, &$plainStr)
     {
-        $publicKey = config('cigo.PUBLIC_KEY_BEGIN') . trim($rsaPublicKey) . config('cigo.PUBLIC_KEY_END');
+        $publicKey = config('cigoadmin.PUBLIC_KEY_BEGIN') . trim($rsaPublicKey) . config('cigoadmin.PUBLIC_KEY_END');
         $keyResId = openssl_pkey_get_public($publicKey);
 
         $encryptedStr = urldecode(trim($encryptedStr));
@@ -162,7 +162,7 @@ class Encrypt
      */
     public static function initAesKey()
     {
-        return Encrypt::makeToken(config('cigo.AES_KEY_LEN'));
+        return Encrypt::makeToken(config('cigoadmin.AES_KEY_LEN'));
     }
 
     /**
@@ -174,7 +174,7 @@ class Encrypt
      */
     public static function aesEncrypt($plainStr, $key)
     {
-        $encryptString = openssl_encrypt(trim($plainStr), config('cigo.AES_METHODS'), $key, false);
+        $encryptString = openssl_encrypt(trim($plainStr), config('cigoadmin.AES_METHODS'), $key, false);
         return trim(urlencode($encryptString));
     }
 
@@ -188,7 +188,7 @@ class Encrypt
     public static function aesDescrypt($encryptedStr, $key)
     {
         $encryptedStr = urldecode(trim($encryptedStr));
-        return openssl_decrypt($encryptedStr, config('cigo.AES_METHODS'), $key, false);
+        return openssl_decrypt($encryptedStr, config('cigoadmin.AES_METHODS'), $key, false);
     }
 
     /**

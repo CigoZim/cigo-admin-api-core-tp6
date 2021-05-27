@@ -14,12 +14,12 @@ use think\Request;
 use think\Response;
 
 /**
- * 检查权限
+ * 检查用户是否有请求权限
  *
- * Class ApiCheckAuth
+ * Class ApiCheckUserAuth
  * @package cigoadmin\middleware
  */
-class ApiCheckAuth
+class ApiCheckUserAuth
 {
     use ApiCommon;
 
@@ -41,7 +41,6 @@ class ApiCheckAuth
                 HttpReponseCode::ClientError_Unauthorized
             ));
         }
-        //        halt($this->moduleName); //TODO 检查管理员模块不允许普通用户登录
         $userInfo = (new User())->where([
             ['token', '=', $request->token],
             ['status', '=', 1]
@@ -56,6 +55,14 @@ class ApiCheckAuth
         }
 
         //TODO 检查token是否超时
+        if (time() - $userInfo->last_log_time > config('cigoadmin.LOGIN_TIMEOUT')) {
+            abort($this->makeApiReturn(
+                '登录超时，请重新登录',
+                [],
+                ErrorCode::ClientError_TokenError,
+                HttpReponseCode::ClientError_Unauthorized
+            ));
+        }
         RequestAlias::instance()->userInfo  = $userInfo;
 
         return $next($request);

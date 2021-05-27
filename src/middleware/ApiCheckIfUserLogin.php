@@ -11,12 +11,12 @@ use think\Request;
 use think\Response;
 
 /**
- * 检查权限
+ * 如果用户登录则检查(如记录浏览用户，登录才记录，不登录也可浏览)
  *
- * Class ApiCheckLoginUser
+ * Class ApiCheckIfUserLogin
  * @package cigoadmin\middleware
  */
-class ApiCheckLoginUser
+class ApiCheckIfUserLogin
 {
     use ApiCommon;
 

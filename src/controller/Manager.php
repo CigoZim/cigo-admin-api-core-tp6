@@ -73,6 +73,7 @@ trait Manager
         $admin->token = $token;
         $admin->token_create_time = time();
         $admin->last_log_time = time();
+        $admin->is_online = 1;
         $admin->save();
         Cache::set('user_token_' . $this->moduleName . '_' . $token, $admin->id, 7 * 24 * 60 * 60);
 
@@ -81,6 +82,22 @@ trait Manager
         UserLoginRecord::recordSuccess($admin->id, $this->args);
 
         return $this->makeApiReturn('登录成功', $admin->hidden(['password']), ErrorCode::OK, HttpReponseCode::Success_OK);
+    }
+
+    protected function doLogout()
+    {
+        //检查用户是否存在
+        if (!empty(Request::instance()->userInfo)) {
+            $user =  Request::instance()->userInfo;
+            $token = $user->token;
+            $user->token = '';
+            $user->token_create_time = 0;
+            $user->is_online = 0;
+            $user->save();
+            Cache::delete('user_token_' . $this->moduleName . '_' . $token); //TODO 把token缓存利用起来
+        }
+
+        return $this->makeApiReturn('退出成功');
     }
 
     /**
