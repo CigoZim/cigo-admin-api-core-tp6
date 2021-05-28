@@ -54,9 +54,8 @@ trait AuthSetting
             return $this->makeApiReturn('节点不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
         //修改节点
-        UserMgAuthRule::update($this->args);
-
-        return $this->makeApiReturn('修改成功');
+        $rule = UserMgAuthRule::update($this->args);
+        return $this->makeApiReturn('修改成功', $rule);
     }
 
     /**
