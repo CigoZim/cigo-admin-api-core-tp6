@@ -84,7 +84,7 @@ trait FileUpload
                 'returnBody' => $qiniuConfig['returnBody']
             ];
 
-        $token = $auth->uploadToken(
+        $uploadToken= $auth->uploadToken(
             $bucket,
             null,
             $qiniuConfig['tokenDuration'],
@@ -93,7 +93,7 @@ trait FileUpload
         );
 
         return $this->makeApiReturn('获取成功', [
-            'token' => $token,
+            'token' => $uploadToken,
             'platform' => env('cigo-admin.file-save-type', 'cloudQiniu'),
             'upload_host' => $qiniuConfig['host']
         ]);

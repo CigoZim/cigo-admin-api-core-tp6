@@ -9,7 +9,7 @@ use cigoadmin\library\HttpReponseCode;
 use cigoadmin\library\traites\ApiCommon;
 use cigoadmin\model\User;
 use Closure;
-use think\facade\Request as RequestAlias;
+use think\facade\Cache;
 use think\Request;
 use think\Response;
 
@@ -41,36 +41,41 @@ class ApiCheckUserAuth
                 HttpReponseCode::ClientError_Unauthorized
             ));
         }
-        $userInfo = (new User())->where([
-            ['token', '=', $request->token],
-            ['status', '=', 1]
-        ])->findOrEmpty();
-        if ($userInfo->isEmpty()) {
-            abort($this->makeApiReturn(
-                '无此用户或禁用',
-                ['token' => $request->token],
-                ErrorCode::ClientError_TokenError,
-                HttpReponseCode::ClientError_BadRequest
-            ));
-        }
-        //非管理员不可操作
-        if (
-            ($userInfo['role_flag'] & User::ROLE_FLAGS_MAIN_ADMIN) === 0 &&
-            ($userInfo['role_flag'] & User::ROLE_FLAGS_COMMON_ADMIN) === 0
-        ) {
-            return $this->makeApiReturn('非管理员1', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
-        }
 
-        //检查token是否超时
-        if (time() - $userInfo->last_log_time > config('cigoadmin.LOGIN_TIMEOUT')) {
+        $request->tokenInfo = Cache::get('user_token_' . input('cigo-append-moduleName') . '_' . $request->token, []);
+        if (empty($request->tokenInfo)) {
             abort($this->makeApiReturn(
-                '登录超时，请重新登录',
+                '登录超时',
                 [],
                 ErrorCode::ClientError_TokenError,
                 HttpReponseCode::ClientError_Unauthorized
             ));
         }
-        RequestAlias::instance()->userInfo  = $userInfo;
+        $request->userInfo = (new User())->where('id', $request->tokenInfo['userId'])->findOrEmpty();
+        if ($request->userInfo->isEmpty()) {
+            abort($this->makeApiReturn(
+                '用户不存在',
+                ['token' => $request->token],
+                ErrorCode::ClientError_TokenError,
+                HttpReponseCode::ClientError_BadRequest
+            ));
+        }
+        if ($request->userInfo->status != 1) {
+            abort($this->makeApiReturn(
+                '用户被禁用',
+                ['token' => $request->token],
+                ErrorCode::ClientError_TokenError,
+                HttpReponseCode::ClientError_BadRequest
+            ));
+        }
+
+        //非管理员不可操作
+        if (
+            ($request->userInfo['role_flag'] & User::ROLE_FLAGS_MAIN_ADMIN) === 0 &&
+            ($request->userInfo['role_flag'] & User::ROLE_FLAGS_COMMON_ADMIN) === 0
+        ) {
+            return $this->makeApiReturn('非管理员', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
+        }
 
         return $next($request);
     }

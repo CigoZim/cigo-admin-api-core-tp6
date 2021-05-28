@@ -100,6 +100,7 @@ trait CheckArgs
             }
             unset($sign_data['cigo-nosign']);
         }
+        unset($sign_data['cigo-append-moduleName']);
         unset($sign_data['version']);
         ksort($sign_data);
         $sign_data_str = http_build_query($sign_data);

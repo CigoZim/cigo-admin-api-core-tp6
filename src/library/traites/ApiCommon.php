@@ -1,5 +1,6 @@
 <?php
-declare (strict_types=1);
+
+declare(strict_types=1);
 
 namespace cigoadmin\library\traites;
 
@@ -21,16 +22,17 @@ trait ApiCommon
      * @param array $data
      * @param int $errorCode
      * @param int $httpCode
+     * @param array $header
      * @return false|string
      */
-    protected function makeApiReturn($msg = "ok", $data = [], $errorCode = 0, $httpCode = 200)
+    protected function makeApiReturn($msg = "ok", $data = [], $errorCode = 0, $httpCode = 200, $header = [])
     {
         $msg_data = [
             "msg" => $msg,
             "data" => $data,
             "error_code" => $errorCode
         ];
-        return json($msg_data, $httpCode);
+        return json($msg_data, $httpCode, $header);
     }
 
     /**
@@ -38,11 +40,12 @@ trait ApiCommon
      * @param array $data
      * @param int $errorCode
      * @param int $httpCode
+     * @param array $header
      * @return false|string
      */
-    protected function error($msg = "", $data = [], $errorCode = ErrorCode::ClientError_ArgsWrong, $httpCode = HttpReponseCode::ClientError_BadRequest)
+    protected function error($msg = "", $data = [], $errorCode = ErrorCode::ClientError_ArgsWrong, $httpCode = HttpReponseCode::ClientError_BadRequest, $header = [])
     {
-        return $this->makeApiReturn($msg, $data, $errorCode, $httpCode);
+        return $this->makeApiReturn($msg, $data, $errorCode, $httpCode, $header);
     }
 
     /**
@@ -50,11 +53,12 @@ trait ApiCommon
      * @param array $data
      * @param int $errorCode
      * @param int $httpCode
+     * @param array $header
      * @return false|string
      */
-    protected function success($msg = "", $data = [], $errorCode = ErrorCode::OK, $httpCode = HttpReponseCode::Success_OK)
+    protected function success($msg = "", $data = [], $errorCode = ErrorCode::OK, $httpCode = HttpReponseCode::Success_OK, $header = [])
     {
-        return $this->makeApiReturn($msg, $data, $errorCode, $httpCode);
+        return $this->makeApiReturn($msg, $data, $errorCode, $httpCode, $header);
     }
 
     protected function makeStatusTips($disableTips = '禁用成功', $successTips = '启用成功', $deleteTips = '删除成功')

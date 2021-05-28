@@ -14,6 +14,9 @@ use cigoadmin\validate\AddUser;
 use cigoadmin\validate\EditUser;
 use cigoadmin\validate\ListPage;
 use cigoadmin\validate\LoginByPwd;
+use cigoadmin\validate\ModifyProfile;
+use cigoadmin\validate\ModifyPwdByPwd;
+use cigoadmin\validate\Password;
 use cigoadmin\validate\PhoneCheck;
 use cigoadmin\validate\SmsCodeCheck;
 use cigoadmin\validate\Status;
@@ -74,7 +77,7 @@ trait User
         }
         Db::commit();
         $user = (new UserModel())->where('id', $user->id)->append(['show_name', 'img_info'])->find();
-        return $this->makeApiReturn('添加成功', $user->hidden(['token', 'token_create_time', 'password']));
+        return $this->makeApiReturn('添加成功', $user->hidden(['password']));
     }
 
 
@@ -136,7 +139,7 @@ trait User
         Db::commit();
 
         $user = (new UserModel())->where('id', $user->id)->append(['show_name', 'img_info'])->find();
-        return $this->makeApiReturn('修改成功', $user->hidden(['token', 'token_create_time', 'password']));
+        return $this->makeApiReturn('修改成功', $user->hidden(['password']));
     }
 
     /**
@@ -190,7 +193,7 @@ trait User
         }
         $dataList = $model
             ->order('User.id desc')
-            ->hidden(['token', 'token_create_time', 'password'])
+            ->hidden(['password'])
             ->append(['show_name', 'img_info'])
             ->select();
         return $this->makeApiReturn('获取成功', [
@@ -239,11 +242,14 @@ trait User
 
         //生成用户token
         $token = Encrypt::makeToken();
-        $user->token = $token;
-        $user->token_create_time = time();
         $user->last_log_time = time();
+        $user->is_online = 1;
         $user->save();
-        Cache::set('user_token_' . $this->moduleName . '_' . $token, $user->id, 7 * 24 * 60 * 60);
+        Cache::set('user_token_' . $this->moduleName . '_' . $token, [
+            'userId' => $user->id,
+            'params' => input()
+        ], 7 * 24 * 60 * 60);
+        Cache::set('user_token_' . $this->moduleName . '_' . $user->id, $token, 7 * 24 * 60 * 60); //方便根据用户id及时清除用户token
 
         //记录登录信息
         $this->args['password'] = isset($this->args['password']) ? Encrypt::encrypt($this->args['password']) : ''; //避免客户密码泄露
@@ -305,11 +311,14 @@ trait User
 
         //生成用户token
         $token = Encrypt::makeToken();
-        $user->token = $token;
-        $user->token_create_time = time();
         $user->last_log_time = time();
+        $user->is_online = 1;
         $user->save();
-        Cache::set('user_token_' . $this->moduleName . '_' . $token, $user->id, 7 * 24 * 60 * 60);
+        Cache::set('user_token_' . $this->moduleName . '_' . $token, [
+            'userId' => $user->id,
+            'params' => input()
+        ], 7 * 24 * 60 * 60);
+        Cache::set('user_token_' . $this->moduleName . '_' . $user->id, $token, 7 * 24 * 60 * 60); //方便根据用户id及时清除用户token
 
         //记录登录信息
         UserLoginRecord::recordSuccess($user->id, $this->args);
@@ -368,12 +377,10 @@ trait User
         //检查用户是否存在
         if (!empty(Request::instance()->userInfo)) {
             $user =  Request::instance()->userInfo;
-            $token = $user->token;
-            $user->token = '';
-            $user->token_create_time = 0;
             $user->is_online = 0;
             $user->save();
-            Cache::delete('user_token_' . $this->moduleName . '_' . $token); //TODO 把token缓存利用起来
+            Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
+            Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
         }
 
         return $this->makeApiReturn('退出成功');
@@ -405,13 +412,12 @@ trait User
         }
         (new SmsCodeCheck())->runCheck();
 
-        $token = $user->token;
         $user->status = 1;
         $user->phone = $this->args['phone'];
-        $user->token = '';
-        $user->token_create_time = 0;
+        $user->is_online = 0;
         $user->save();
-        Cache::delete('user_token_' . $this->moduleName . '_' . $token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
         return $this->makeApiReturn('更换成功，请重新登录');
     }
@@ -440,12 +446,12 @@ trait User
             return $this->makeApiReturn('无效操作状态', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
 
-        $token = $user->token;
         $user->password = Encrypt::encrypt($this->args['new']);
-        $user->token = '';
-        $user->token_create_time = 0;
+        $user->is_online = 0;
         $user->save();
-        Cache::delete('user_token_' . $this->moduleName . '_' . $token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
+
 
         return $this->makeApiReturn('密码修改成功，请重新登录');
     }
@@ -468,12 +474,11 @@ trait User
         if ($user->password == Encrypt::encrypt($this->args['password'])) {
             return $this->makeApiReturn('新密码不能与原密码相同', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
-        $token = $user->token;
         $user->password = Encrypt::encrypt($this->args['password']);
-        $user->token = '';
-        $user->token_create_time = 0;
+        $user->is_online = 0;
         $user->save();
-        Cache::delete('user_token_' . $this->moduleName . '_' . $token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
         return $this->makeApiReturn('密码已修改，请重新登录');
     }
@@ -495,12 +500,11 @@ trait User
         if ($user->id != Request::instance()->userInfo->id) { //TODO 检查所有使用的地方
             return $this->makeApiReturn('非本人操作被禁止', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
-        $token = $user->token;
         $user->status = -1;
-        $user->token = '';
-        $user->token_create_time = 0;
+        $user->is_online = 0;
         $user->save();
-        Cache::delete('user_token_' . $this->moduleName . '_' . $token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
         return $this->makeApiReturn('注销成功');
     }

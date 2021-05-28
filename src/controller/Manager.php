@@ -70,18 +70,22 @@ trait Manager
 
         //生成token
         $token = Encrypt::makeToken();
-        $admin->token = $token;
-        $admin->token_create_time = time();
         $admin->last_log_time = time();
         $admin->is_online = 1;
         $admin->save();
-        Cache::set('user_token_' . $this->moduleName . '_' . $token, $admin->id, 7 * 24 * 60 * 60);
+        Cache::set('user_token_' . $this->moduleName . '_' . $token, [
+            'userId' => $admin->id,
+            'params' => input()
+        ], 7 * 24 * 60 * 60);
+        Cache::set('user_token_' . $this->moduleName . '_' . $admin->id, $token, 7 * 24 * 60 * 60); //方便根据用户id及时清除用户token
 
         //记录登录信息
         $this->args['password'] = isset($this->args['password']) ? Encrypt::encrypt($this->args['password']) : ''; //避免客户密码泄露
         UserLoginRecord::recordSuccess($admin->id, $this->args);
 
-        return $this->makeApiReturn('登录成功', $admin->hidden(['password']), ErrorCode::OK, HttpReponseCode::Success_OK);
+        return $this->makeApiReturn('登录成功', $admin->hidden(['password']), ErrorCode::OK, HttpReponseCode::Success_OK, [
+            'Cigo-Token' => $token
+        ]);
     }
 
     protected function doLogout()
@@ -89,12 +93,10 @@ trait Manager
         //检查用户是否存在
         if (!empty(Request::instance()->userInfo)) {
             $user =  Request::instance()->userInfo;
-            $token = $user->token;
-            $user->token = '';
-            $user->token_create_time = 0;
             $user->is_online = 0;
             $user->save();
-            Cache::delete('user_token_' . $this->moduleName . '_' . $token); //TODO 把token缓存利用起来
+            Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
+            Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
         }
 
         return $this->makeApiReturn('退出成功');
@@ -134,7 +136,7 @@ trait Manager
 
         $manager = User::create($this->args);
         $manager = (new User())->where('id', $manager->id)->append(['show_name', 'img_info'])->find();
-        return $this->makeApiReturn('添加成功', $manager->hidden(['token', 'token_create_time', 'password']));
+        return $this->makeApiReturn('添加成功', $manager->hidden(['password']));
     }
 
     /**
@@ -182,7 +184,7 @@ trait Manager
         $this->args['update_time'] = time();
         $manager = User::update($this->args);
         $manager = (new User())->where('id', $manager->id)->append(['show_name', 'img_info'])->find();
-        return $this->makeApiReturn('修改成功', $manager->hidden(['token', 'token_create_time', 'password']));
+        return $this->makeApiReturn('修改成功', $manager->hidden(['password']));
     }
 
     protected function modifyPwdByPwd()
@@ -209,12 +211,11 @@ trait Manager
             return $this->makeApiReturn('无效操作状态', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
 
-        $token = $user->token;
         $user->password = Encrypt::encrypt($this->args['new']);
-        $user->token = '';
-        $user->token_create_time = 0;
+        $user->is_online = 0;
         $user->save();
-        Cache::delete('user_token_' . $this->moduleName . '_' . $token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
+        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
         return $this->makeApiReturn('密码修改成功，请重新登录');
     }
@@ -258,7 +259,7 @@ trait Manager
             $map[] = ['nickname|phone|realname|username', 'like', '%' . $this->args['keywords'] . '%'];
         }
 
-        $model = (new User())->where($map)->hidden(['token', 'token_create_time', 'password']);
+        $model = (new User())->where($map)->hidden(['password']);
         $count = $model->count();
         if (!empty($this->args['page']) && !empty($this->args['pageSize'])) {
             $model->page(intval($this->args['page']), intval($this->args['pageSize']));
@@ -280,7 +281,7 @@ trait Manager
             return $this->makeApiReturn('请提供管理员编号', [], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
         //检查管理员是否存在
-        $manager = (new User())->where('id', $this->args['id'])->append(['show_name', 'img_info', 'auth_group_info'])->hidden(['token', 'token_create_time', 'password'])->findOrEmpty();
+        $manager = (new User())->where('id', $this->args['id'])->append(['show_name', 'img_info', 'auth_group_info'])->hidden(['password'])->findOrEmpty();
         if ($manager->isEmpty()) {
             return $this->makeApiReturn('管理员不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }

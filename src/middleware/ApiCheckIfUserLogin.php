@@ -7,6 +7,7 @@ namespace cigoadmin\middleware;
 use cigoadmin\library\traites\ApiCommon;
 use cigoadmin\model\User;
 use Closure;
+use think\facade\Cache;
 use think\Request;
 use think\Response;
 
@@ -29,14 +30,18 @@ class ApiCheckIfUserLogin
      */
     public function handle($request, Closure $next)
     {
-        $request->token = $request->header('Cigo-Token');
-        if (!empty($request->token)) {
-            $userInfo = (new User())->where([
-                ['token', '=', $request->token],
-                ['status', '=', 1]
-            ])->findOrEmpty();
-            if (!$userInfo->isEmpty()) {
-                $request->userInfo = $userInfo;
+        $token = $request->header('Cigo-Token');
+        if (!empty($token)) {
+            $request->token = $token;
+
+            $tokenInfo = Cache::get('user_token_' . input('cigo-append-moduleName') . '_' . $request->token, []);
+            if (!empty($tokenInfo)) {
+                $request->tokenInfo = $tokenInfo;
+
+                $userInfo = (new User())->where('id', $request->tokenInfo['userId'])->findOrEmpty();
+                if (!$userInfo->isEmpty() && $userInfo->status == 1) {
+                    $request->userInfo = $userInfo;
+                }
             }
         }
 

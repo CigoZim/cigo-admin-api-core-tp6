@@ -15,10 +15,11 @@ use think\Response;
  */
 class ApiCrossDomain
 {
-    protected $header = [
+    protected $allowHeader = [
         'Access-Control-Allow-Origin' => '*',
         'Access-Control-Allow-Credentials' => 'true',
         'Access-Control-Allow-Headers' => 'Cigo-Device-Type, Cigo-Timestamp, Cigo-Token, Cigo-Sign, Origin, X-Requested-With,Content-Type, Accept, Authorization',
+        'Access-Control-Expose-Headers' => 'Cigo-Device-Type, Cigo-Timestamp, Cigo-Token, Cigo-Sign, Origin, X-Requested-With,Content-Type, Accept, Authorization',
         'Access-Control-Allow-Methods' => 'GET, POST, PATCH, PUT, DELETE, OPTIONS',
     ];
 
@@ -32,7 +33,7 @@ class ApiCrossDomain
      */
     public function handle($request, Closure $next, ?array $header = [])
     {
-        $header = empty($header) ? $this->header : array_merge($this->header, $header);
+        $header = empty($header) ? $this->allowHeader: array_merge($this->allowHeader, $header);
 
         if ($request->method(true) == 'OPTIONS') {
             return Response::create()->code(204)->header($header);
