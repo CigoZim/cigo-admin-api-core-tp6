@@ -53,8 +53,15 @@ class ApiCheckUserAuth
                 HttpReponseCode::ClientError_BadRequest
             ));
         }
+        //非管理员不可操作
+        if (
+            ($userInfo['role_flag'] & User::ROLE_FLAGS_MAIN_ADMIN) === 0 &&
+            ($userInfo['role_flag'] & User::ROLE_FLAGS_COMMON_ADMIN) === 0
+        ) {
+            return $this->makeApiReturn('非管理员1', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
+        }
 
-        //TODO 检查token是否超时
+        //检查token是否超时
         if (time() - $userInfo->last_log_time > config('cigoadmin.LOGIN_TIMEOUT')) {
             abort($this->makeApiReturn(
                 '登录超时，请重新登录',

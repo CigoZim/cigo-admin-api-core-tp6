@@ -18,7 +18,6 @@ class AddAuthGroup extends ApiBaseValidate
         'title' => 'require',
         'pid' => 'require',
         'path' => 'require',
-        'rules' => 'require',
     ];
 
     /**
@@ -31,6 +30,5 @@ class AddAuthGroup extends ApiBaseValidate
         'title.require' => '请配置角色名称',
         'pid.require' => '未提供pid',
         'path.require' => '未提供path',
-        'rules.require' => '未提供rules',
     ];
 }

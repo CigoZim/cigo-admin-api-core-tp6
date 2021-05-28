@@ -115,15 +115,10 @@ trait AuthSetting
         (new AddAuthGroup())->runCheck();
 
         //添加节点
-        $group = UserMgAuthGroup::create([
-            'module' => empty($this->args['module']) ? 'admin' : $this->args['module'],
-            'title' => $this->args['title'],
-            'pid' => $this->args['pid'],
-            'path' => $this->args['path'],
-            'sort' => $this->args['sort'],
-            'rules' => $this->args['rules'],
-            'summary' => $this->args['summary'],
-        ]);
+        if (empty($this->args['module'])) {
+            $this->args['module'] = 'admin';
+        }
+        $group = UserMgAuthGroup::create($this->args);
         $group = (new UserMgAuthGroup())->where('id', $group->id)->find();
         return $this->makeApiReturn('添加成功', $group);
     }
