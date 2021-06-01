@@ -34,7 +34,7 @@ class ApiCheckIfUserLogin
         if (!empty($token)) {
             $request->token = $token;
 
-            $tokenInfo = Cache::get('user_token_' . input('cigo-append-moduleName') . '_' . $request->token, []);
+            $tokenInfo = Cache::get('user_token_' . input('cigo_append_moduleName') . '_' . $request->token, []);
             if (!empty($tokenInfo)) {
                 $request->tokenInfo = $tokenInfo;
 

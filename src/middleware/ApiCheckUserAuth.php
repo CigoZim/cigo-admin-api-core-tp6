@@ -42,7 +42,7 @@ class ApiCheckUserAuth
             ));
         }
 
-        $request->tokenInfo = Cache::get('user_token_' . input('cigo-append-moduleName') . '_' . $request->token, []);
+        $request->tokenInfo = Cache::get('user_token_' . input('cigo_append_moduleName') . '_' . $request->token, []);
         if (empty($request->tokenInfo)) {
             abort($this->makeApiReturn(
                 '登录超时',
