@@ -95,14 +95,15 @@ trait AuthSetting
 
         $model = (new UserMgAuthRule())->where($map);
         $count = $model->count();
-        $dataList = $model->order('pid asc, sort desc, id asc')->select();
+        $dataList = $model->order('pid asc, group_sort desc, group asc, sort desc, id asc')->select();
         $treeList = [];
         if ($dataList) {
             $this->convertToTree($dataList, $treeList, 0, 'pid', false);
         }
         return $this->makeApiReturn('获取成功', [
             'count' => $count,
-            'dataList' => $treeList
+            'dataList' => $treeList,
+            'list' => $dataList
         ]);
     }
 
