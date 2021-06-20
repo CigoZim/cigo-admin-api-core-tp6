@@ -15,6 +15,7 @@ use cigoadmin\validate\LoginByPwd;
 use cigoadmin\validate\ModifyPwdByPwd;
 use cigoadmin\validate\Status;
 use think\facade\Cache;
+use think\facade\Event;
 use think\facade\Request;
 
 /**
@@ -58,9 +59,7 @@ trait Manager
 
         //检测密码
         if ($admin->password !== Encrypt::encrypt($this->args['password'])) {
-            return $this->makeApiReturn('密码错误', [
-                //                'password'=>Encrypt::encrypt('123456')
-            ], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
+            return $this->makeApiReturn('密码错误', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
 
         //检查状态
@@ -68,23 +67,11 @@ trait Manager
             return $this->makeApiReturn('账户被禁止', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
 
-        //生成token
-        $token = Encrypt::makeToken();
-        $admin->last_log_time = time();
-        $admin->is_online = 1;
-        $admin->save();
-        Cache::set('user_token_' . $this->moduleName . '_' . $token, [
-            'userId' => $admin->id,
-            'params' => input()
-        ], 7 * 24 * 60 * 60);
-        Cache::set('user_token_' . $this->moduleName . '_' . $admin->id, $token, 7 * 24 * 60 * 60); //方便根据用户id及时清除用户token
-
-        //记录登录信息
-        $this->args['password'] = isset($this->args['password']) ? Encrypt::encrypt($this->args['password']) : ''; //避免客户密码泄露
-        UserLoginRecord::recordSuccess($admin->id, $this->args);
-
-        return $this->makeApiReturn('登录成功', $admin->hidden(['password']), ErrorCode::OK, HttpReponseCode::Success_OK, [
-            'Cigo-Token' => $token
+        // 触发管理员登录成功事件
+        Event::trigger("AdminLogin", [
+            "args" => $this->args,
+            "moduleName" => $this->moduleName,
+            "userInfo" => $admin
         ]);
     }
 
@@ -96,7 +83,6 @@ trait Manager
             $user->is_online = 0;
             $user->save();
             Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
-            Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
         }
 
         return $this->makeApiReturn('退出成功');
@@ -215,7 +201,6 @@ trait Manager
         $user->is_online = 0;
         $user->save();
         Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
-        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
         return $this->makeApiReturn('密码修改成功，请重新登录');
     }
@@ -251,7 +236,7 @@ trait Manager
         (new ListPage())->runCheck();
 
         isset($this->args['status'])
-            ? $map[] = ['status', 'in', $this->args['status']]
+            ? $map[] = ['status', 'in', $this->args['status'] . '']
             : $map[] = ['status', '<>', -1];
         $map[] = ['role_flag', 'in', [User::ROLE_FLAGS_COMMON_ADMIN, User::ROLE_FLAGS_MAIN_ADMIN]];
         $map[] = ['module', '=', empty($this->args['module']) ? 'admin' : $this->args['module']];

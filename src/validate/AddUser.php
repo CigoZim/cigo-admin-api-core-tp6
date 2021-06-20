@@ -16,7 +16,7 @@ class AddUser extends ApiBaseValidate
     protected $rule = [
         'username' => 'require',
         'password' => 'require',
-        'sex' => 'require|in:0,1,2',
+        'sex' => 'require|in:1,2,3',
         'phone' => 'require|mobile',
         'email' => 'require|email',
     ];

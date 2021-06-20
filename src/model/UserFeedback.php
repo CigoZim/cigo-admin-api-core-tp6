@@ -14,9 +14,9 @@ use think\Model;
  */
 class UserFeedback extends Model
 {
-    protected $table = 'cg_user_feedback';
-
     use FileUpload;
+
+    protected $table = 'cg_user_feedback';
 
     public function getImgMultiInfoAttr($value, $data)
     {

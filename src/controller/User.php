@@ -8,7 +8,6 @@ use cigoadmin\library\HttpReponseCode;
 use cigoadmin\library\traites\ApiCommon;
 use cigoadmin\model\User as UserModel;
 use cigoadmin\model\UserFeedback;
-use cigoadmin\model\UserLoginRecord;
 use cigoadmin\validate\AddFeedBack;
 use cigoadmin\validate\AddUser;
 use cigoadmin\validate\EditUser;
@@ -22,6 +21,7 @@ use cigoadmin\validate\SmsCodeCheck;
 use cigoadmin\validate\Status;
 use think\facade\Cache;
 use think\facade\Db;
+use think\facade\Event;
 use think\facade\Request;
 
 /**
@@ -174,7 +174,7 @@ trait User
 
         $map[] = ['robot', '=', 0];
         isset($this->args['status'])
-            ? $map[] = ['User.status', 'in', $this->args['status']]
+            ? $map[] = ['User.status', 'in', $this->args['status'] . '']
             : $map[] = ['User.status', '<>', -1];
         $map[] = ['User.role_flag', '=', UserModel::ROLE_FLAGS_COMMON_USER];
         $map[] = ['User.module', '=', empty($this->args['module']) ? 'client' : $this->args['module']];
@@ -240,22 +240,12 @@ trait User
             return $this->makeApiReturn('账户被禁止', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
 
-        //生成用户token
-        $token = Encrypt::makeToken();
-        $user->last_log_time = time();
-        $user->is_online = 1;
-        $user->save();
-        Cache::set('user_token_' . $this->moduleName . '_' . $token, [
-            'userId' => $user->id,
-            'params' => input()
-        ], 7 * 24 * 60 * 60);
-        Cache::set('user_token_' . $this->moduleName . '_' . $user->id, $token, 7 * 24 * 60 * 60); //方便根据用户id及时清除用户token
-
-        //记录登录信息
-        $this->args['password'] = isset($this->args['password']) ? Encrypt::encrypt($this->args['password']) : ''; //避免客户密码泄露
-        UserLoginRecord::recordSuccess($user->id, $this->args);
-
-        return $this->makeApiReturn('登录成功', $user->hidden(['password']), ErrorCode::OK, HttpReponseCode::Success_OK);
+        // 触发管理员登录成功事件
+        Event::trigger("ClientLogin", [
+            "args" => $this->args,
+            "moduleName" => $this->moduleName,
+            "userInfo" => $user
+        ]);
     }
 
 
@@ -309,20 +299,12 @@ trait User
             return $this->makeApiReturn('账户被禁止', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
 
-        //生成用户token
-        $token = Encrypt::makeToken();
-        $user->last_log_time = time();
-        $user->is_online = 1;
-        $user->save();
-        Cache::set('user_token_' . $this->moduleName . '_' . $token, [
-            'userId' => $user->id,
-            'params' => input()
-        ], 7 * 24 * 60 * 60);
-        Cache::set('user_token_' . $this->moduleName . '_' . $user->id, $token, 7 * 24 * 60 * 60); //方便根据用户id及时清除用户token
-
-        //记录登录信息
-        UserLoginRecord::recordSuccess($user->id, $this->args);
-        return $this->makeApiReturn('登录成功', $user->hidden(['password']), ErrorCode::OK, HttpReponseCode::Success_OK);
+        // 触发管理员登录成功事件
+        Event::trigger("ClientLogin", [
+            "args" => $this->args,
+            "moduleName" => $this->moduleName,
+            "userInfo" => $user
+        ]);
     }
 
     protected function modifyProfile()
@@ -380,7 +362,6 @@ trait User
             $user->is_online = 0;
             $user->save();
             Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
-            Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
         }
 
         return $this->makeApiReturn('退出成功');
@@ -417,7 +398,6 @@ trait User
         $user->is_online = 0;
         $user->save();
         Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
-        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
         return $this->makeApiReturn('更换成功，请重新登录');
     }
@@ -450,7 +430,6 @@ trait User
         $user->is_online = 0;
         $user->save();
         Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
-        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
 
         return $this->makeApiReturn('密码修改成功，请重新登录');
@@ -478,7 +457,6 @@ trait User
         $user->is_online = 0;
         $user->save();
         Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
-        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
         return $this->makeApiReturn('密码已修改，请重新登录');
     }
@@ -504,7 +482,6 @@ trait User
         $user->is_online = 0;
         $user->save();
         Cache::delete('user_token_' . $this->moduleName . '_' . Request::instance()->token);
-        Cache::delete('user_token_' . $this->moduleName . '_' . $user->id);
 
         return $this->makeApiReturn('注销成功');
     }

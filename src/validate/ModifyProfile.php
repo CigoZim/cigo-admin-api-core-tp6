@@ -16,8 +16,8 @@ class ModifyProfile extends ApiBaseValidate
     protected $rule = [
         'id' => 'require',
         'img' => 'number',
-        'birthay' => 'number',
-        'sex' => 'in:0,1,2',
+        'birthday' => 'number',
+        'sex' => 'in:1,2,3',
         'nickname' => 'min:2|max:15',
     ];
 

@@ -88,7 +88,7 @@ trait AuthSetting
     protected function getAuthRuleList()
     {
         isset($this->args['status'])
-            ? $map[] = ['status', 'in', $this->args['status']]
+            ? $map[] = ['status', 'in', $this->args['status'] . '']
             : $map[] = ['status', '<>', -1];
         $map[] = ['module', '=', empty($this->args['module']) ? 'admin' : $this->args['module']];
         $map[] = ['type', 'in', empty($this->args['type']) ? '0' : $this->args['type']];
@@ -103,7 +103,6 @@ trait AuthSetting
         return $this->makeApiReturn('获取成功', [
             'count' => $count,
             'dataList' => $treeList,
-            'list' => $dataList
         ]);
     }
 
@@ -178,7 +177,7 @@ trait AuthSetting
     protected function getAuthGroupList()
     {
         isset($this->args['status'])
-            ? $map[] = ['status', 'in', $this->args['status']]
+            ? $map[] = ['status', 'in', $this->args['status'] . '']
             : $map[] = ['status', '<>', -1];
         $map[] = ['module', '=', empty($this->args['module']) ? 'admin' : $this->args['module']];
 

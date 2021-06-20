@@ -9,7 +9,7 @@ namespace cigoadmin\library\traites;
  */
 trait Tree
 {
-    protected function convertToTree(&$srcDataList = array(), &$treeList = array(), $pid = 0, $pidKey = 'pid', $checkGroup = true)
+    protected function convertToTree(&$srcDataList = array(), &$treeList = array(), $pid = 0, $pidKey = 'pid', $checkGroup = true, $subListKey = "sub_list")
     {
         $groupName = '';
         $groupItemIndex = -1;
@@ -34,9 +34,9 @@ trait Tree
                 }
                 // 处理当前项
                 $subList = array();
-                $this->convertToTree($srcDataList, $subList, $item['id'], $pidKey, $checkGroup);
+                $this->convertToTree($srcDataList, $subList, $item['id'], $pidKey, $checkGroup, $subListKey);
                 if (!empty($subList)) {
-                    $item['sub_list'] = $subList;
+                    $item[$subListKey] = $subList;
                 }
 
                 $treeList[] = $item;
@@ -45,4 +45,3 @@ trait Tree
         }
     }
 }
-

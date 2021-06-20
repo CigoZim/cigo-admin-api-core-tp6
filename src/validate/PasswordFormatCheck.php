@@ -1,11 +1,12 @@
 <?php
-declare (strict_types=1);
+
+declare(strict_types=1);
 
 namespace cigoadmin\validate;
 
 use cigoadmin\library\ApiBaseValidate;
 
-class EditUser extends ApiBaseValidate
+class PasswordFormatCheck extends ApiBaseValidate
 {
     /**
      * 定义验证规则
@@ -14,10 +15,7 @@ class EditUser extends ApiBaseValidate
      * @var array
      */
     protected $rule = [
-        'id' => 'require',
-        'sex' => 'in:1,2,3',
-        'phone' => 'mobile',
-        'email' => 'email',
+        'password' => 'min:6|max:20',
     ];
 
     /**
@@ -27,9 +25,7 @@ class EditUser extends ApiBaseValidate
      * @var array
      */
     protected $message = [
-        'id.require' => '未提供编号',
-        'sex.in' => '性别错误',
-        'phone.mobile' => '手机号格式错误',
-        'email.email' => '邮箱格式错误',
+        'password.min' => '密码最少4位',
+        'password.max' => '密码最多20位',
     ];
 }

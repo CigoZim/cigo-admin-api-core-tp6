@@ -46,7 +46,7 @@ trait News
 
         $map = [];
         isset($this->args['status'])
-            ? $map[] = ['status', 'in', $this->args['status']]
+            ? $map[] = ['status', 'in', $this->args['status'] . '']
             : $map[] = ['status', '<>', -1];
 
         if (!empty($this->args['keywords'])) {
