@@ -41,7 +41,7 @@ trait Manager
         }
 
         //检查管理员是否存在
-        $admin = (new User())->where([
+        $admin = User::where([
             ['username|phone', '=', $this->args['username']],
             ['module', '=', $this->args['module']],
         ])->append(['show_name', 'img_info'])->findOrEmpty();
@@ -96,7 +96,7 @@ trait Manager
         (new AddManager())->runCheck();
 
         //检查用户名是否存在
-        $dataCheck = (new User())->where([
+        $dataCheck = User::where([
             ['username|phone', '=', $this->args['username']],
             ['status', '<>', -1],
         ])->findOrEmpty();
@@ -105,7 +105,7 @@ trait Manager
         }
         //检查手机号是否存在
         if (!empty($this->args['phone'])) {
-            $dataCheck = (new User())->where([
+            $dataCheck = User::where([
                 ['username|phone', '=', $this->args['phone']],
                 ['status', '<>', -1],
             ])->findOrEmpty();
@@ -121,7 +121,7 @@ trait Manager
         $this->args['create_time'] = time();
 
         $manager = User::create($this->args);
-        $manager = (new User())->where('id', $manager->id)->append(['show_name', 'img_info'])->find();
+        $manager = User::where('id', $manager->id)->append(['show_name', 'img_info'])->find();
         return $this->makeApiReturn('添加成功', $manager->hidden(['password']));
     }
 
@@ -133,13 +133,13 @@ trait Manager
         (new EditManager())->runCheck();
 
         //检查管理员是否存在
-        $manager = (new User())->where('id', $this->args['id'])->findOrEmpty();
+        $manager = User::where('id', $this->args['id'])->findOrEmpty();
         if ($manager->isEmpty()) {
             return $this->makeApiReturn('管理员不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
         //检查用户名是否存在
         if (!empty($this->args['username'])) {
-            $dataCheck = (new User())->where([
+            $dataCheck = User::where([
                 ['username|phone', '=', $this->args['username']],
                 ['module', '=', $this->moduleName]
             ])->findOrEmpty();
@@ -150,7 +150,7 @@ trait Manager
         }
         //检查手机号是否存在
         if (!empty($this->args['phone'])) {
-            $dataCheck = (new User())->where([
+            $dataCheck = User::where([
                 ['username|phone', '=', $this->args['phone']],
                 ['module', '=', $this->moduleName]
             ])->findOrEmpty();
@@ -169,7 +169,7 @@ trait Manager
         }
         $this->args['update_time'] = time();
         $manager = User::update($this->args);
-        $manager = (new User())->where('id', $manager->id)->append(['show_name', 'img_info'])->find();
+        $manager = User::where('id', $manager->id)->append(['show_name', 'img_info'])->find();
         return $this->makeApiReturn('修改成功', $manager->hidden(['password']));
     }
 
@@ -180,7 +180,7 @@ trait Manager
             return $this->makeApiReturn('新密码不能与原密码相同', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
         //检查用户是否存在
-        $user = (new User())->where('id', Request::instance()->userInfo->id)->findOrEmpty();
+        $user = User::where('id', Request::instance()->userInfo->id)->findOrEmpty();
         if ($user->isEmpty()) {
             return $this->makeApiReturn('账户不存在', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
@@ -190,7 +190,7 @@ trait Manager
         }
         //检测密码
         if ($user->password !== Encrypt::encrypt($this->args['old'])) {
-            return $this->makeApiReturn('密码错误', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
+            return $this->makeApiReturn('原密码错误', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
         //检查状态
         if ($user->status !== 1) {
@@ -213,7 +213,7 @@ trait Manager
         (new Status())->runCheck();
 
         //检查管理员是否存在
-        $manager = (new User())->where('id', $this->args['id'])->findOrEmpty();
+        $manager = User::where('id', $this->args['id'])->findOrEmpty();
         if ($manager->isEmpty() || $manager->status == -1) {
             return $this->makeApiReturn('管理员不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
@@ -244,7 +244,7 @@ trait Manager
             $map[] = ['nickname|phone|realname|username', 'like', '%' . $this->args['keywords'] . '%'];
         }
 
-        $model = (new User())->where($map)->hidden(['password']);
+        $model = User::where($map)->hidden(['password']);
         $count = $model->count();
         if (!empty($this->args['page']) && !empty($this->args['pageSize'])) {
             $model->page(intval($this->args['page']), intval($this->args['pageSize']));
@@ -266,7 +266,7 @@ trait Manager
             return $this->makeApiReturn('请提供管理员编号', [], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
         //检查管理员是否存在
-        $manager = (new User())->where('id', $this->args['id'])->append(['show_name', 'img_info', 'auth_group_info'])->hidden(['password'])->findOrEmpty();
+        $manager = User::where('id', $this->args['id'])->append(['show_name', 'img_info', 'auth_group_info'])->hidden(['password'])->findOrEmpty();
         if ($manager->isEmpty()) {
             return $this->makeApiReturn('管理员不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }

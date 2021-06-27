@@ -13,13 +13,13 @@ class Comment extends Model
 
     public function getUserInfoAttr($value, $data)
     {
-        $res = (new User())->where('id', $data['user_id'])->visible(['id', 'nickname', 'phone', 'realname'])->append(['img_info'])->findOrEmpty();
+        $res = User::where('id', $data['user_id'])->visible(['id', 'nickname', 'phone', 'realname'])->append(['img_info'])->findOrEmpty();
         return $res->isEmpty() ? null : $res;
     }
 
     public function getFirstPageInteractionAttr($value, $data)
     {
-        return (new CommentInteraction())->where([
+        return CommentInteraction::where([
             ['comment_id', '=', $data['id']],
             ['status', '=', 1]
         ])->append(['user_info', 'target_user_info'])->order('id desc')->limit(5)->select();
@@ -31,7 +31,7 @@ class Comment extends Model
         if (empty($userInfo)) {
             return 0;
         }
-        $res = (new UserLike())->where([
+        $res = UserLike::where([
             ['content_type', '=', 'comment'],
             ['content_id', '=', $data['id']],
             ['user_id', '=', $userInfo->id]
@@ -45,7 +45,7 @@ class Comment extends Model
         if (empty($userInfo)) {
             return 0;
         }
-        $res = (new UserReport())->where([
+        $res = UserReport::where([
             ['content_type', '=', 'comment'],
             ['content_id', '=', $data['id']],
             ['user_id', '=', $userInfo->id]
@@ -55,7 +55,7 @@ class Comment extends Model
 
     public function getNumLikeAttr($value, $data)
     {
-        return (new UserLike())->where([
+        return UserLike::where([
             ['content_type', '=', 'comment'],
             ['content_id', '=', $data['id']],
         ])->count() + $data['num_like'];
@@ -63,7 +63,7 @@ class Comment extends Model
 
     public function getNumReportAttr($value, $data)
     {
-        return (new UserReport())->where([
+        return UserReport::where([
             ['content_type', '=', 'comment'],
             ['content_id', '=', $data['id']],
         ])->count() + $data['num_report'];

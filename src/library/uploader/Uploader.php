@@ -208,7 +208,7 @@ abstract class Uploader
 
     private function getUploadFileInDB(&$file)
     {
-        return (new Files())->where(array('md5' => $file['md5'], 'sha1' => $file['sha1']))->find();
+        return Files::where(array('md5' => $file['md5'], 'sha1' => $file['sha1']))->find();
     }
 
     protected function getSaveFileName()

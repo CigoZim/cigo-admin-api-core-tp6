@@ -76,6 +76,8 @@ trait CheckArgs
         //TODO 核对签名
         $sign = $this->createSign();
 
+        // halt($sign);
+
         if ($this->request->header("Cigo-Sign") != $sign) {
             abort($this->makeApiReturn(
                 "签名错误",
@@ -93,6 +95,8 @@ trait CheckArgs
     function createSign()
     {
         $sign_data = input();
+        // dump($sign_data);
+
         //Tips_Flag 去除无需签名字段，这点对于传输大数据字段且保证效率很有作用
         if (!empty($sign_data['cigo-nosign'])) {
             foreach ($sign_data['cigo-nosign'] as $paramKey) {
@@ -102,8 +106,17 @@ trait CheckArgs
         }
         unset($sign_data['cigo_append_moduleName']);
         unset($sign_data['version']);
+
+        // dump($sign_data);
+
         ksort($sign_data);
+
+        // dump($sign_data);
+
         $sign_data_str = http_build_query($sign_data);
+
+        // halt($sign_data_str);
+
         return strtoupper(md5($sign_data_str));
     }
 }

@@ -38,7 +38,7 @@ class ApiCheckIfUserLogin
             if (!empty($tokenInfo)) {
                 $request->tokenInfo = $tokenInfo;
 
-                $userInfo = (new User())->where('id', $request->tokenInfo['userId'])->findOrEmpty();
+                $userInfo = User::where('id', $request->tokenInfo['userId'])->findOrEmpty();
                 if (!$userInfo->isEmpty() && $userInfo->status == 1) {
                     $request->userInfo = $userInfo;
                 }

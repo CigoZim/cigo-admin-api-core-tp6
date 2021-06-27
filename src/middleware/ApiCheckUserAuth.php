@@ -51,7 +51,7 @@ class ApiCheckUserAuth
                 HttpReponseCode::ClientError_Unauthorized
             ));
         }
-        $request->userInfo = (new User())->where('id', $request->tokenInfo['userId'])->findOrEmpty();
+        $request->userInfo = User::where('id', $request->tokenInfo['userId'])->findOrEmpty();
         if ($request->userInfo->isEmpty()) {
             abort($this->makeApiReturn(
                 '用户不存在',

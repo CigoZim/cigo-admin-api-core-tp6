@@ -30,14 +30,14 @@ trait AuthSetting
     {
         (new AddAuthRule())->runCheck();
 
-        $node = (new UserMgAuthRule())->where('component_name', $this->args['component_name'])->findOrEmpty();
+        $node = UserMgAuthRule::where('component_name', $this->args['component_name'])->findOrEmpty();
         if (!$node->isEmpty()) {
             return $this->makeApiReturn('组件名已存在', ['component_name' => $this->args['component_name']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
 
         // 添加节点
         $rule = UserMgAuthRule::create($this->args);
-        $rule = (new UserMgAuthRule())->where('id', $rule->id)->find();
+        $rule = UserMgAuthRule::where('id', $rule->id)->find();
         return $this->makeApiReturn('添加成功', $rule);
     }
 
@@ -49,7 +49,7 @@ trait AuthSetting
         (new EditAuthRule())->runCheck();
 
         //检查节点是否存在
-        $node = (new UserMgAuthRule())->where('id', $this->args['id'])->findOrEmpty();
+        $node = UserMgAuthRule::where('id', $this->args['id'])->findOrEmpty();
         if ($node->isEmpty()) {
             return $this->makeApiReturn('节点不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
@@ -66,7 +66,7 @@ trait AuthSetting
         (new Status())->runCheck();
 
         //检查节点是否存在
-        $node = (new UserMgAuthRule())->where('id', $this->args['id'])->findOrEmpty();
+        $node = UserMgAuthRule::where('id', $this->args['id'])->findOrEmpty();
         if ($node->isEmpty() || $node->status == -1) {
             return $this->makeApiReturn('节点不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
@@ -93,7 +93,7 @@ trait AuthSetting
         $map[] = ['module', '=', empty($this->args['module']) ? 'admin' : $this->args['module']];
         $map[] = ['type', 'in', empty($this->args['type']) ? '0' : $this->args['type']];
 
-        $model = (new UserMgAuthRule())->where($map);
+        $model = UserMgAuthRule::where($map);
         $count = $model->count();
         $dataList = $model->order('pid asc, group_sort desc, group asc, sort desc, id asc')->select();
         $treeList = [];
@@ -118,7 +118,7 @@ trait AuthSetting
             $this->args['module'] = 'admin';
         }
         $group = UserMgAuthGroup::create($this->args);
-        $group = (new UserMgAuthGroup())->where('id', $group->id)->find();
+        $group = UserMgAuthGroup::where('id', $group->id)->find();
         return $this->makeApiReturn('添加成功', $group);
     }
 
@@ -130,7 +130,7 @@ trait AuthSetting
         (new EditAuthGroup())->runCheck();
 
         //检查节点是否存在
-        $group = (new UserMgAuthGroup())->where('id', $this->args['id'])->findOrEmpty();
+        $group = UserMgAuthGroup::where('id', $this->args['id'])->findOrEmpty();
         if ($group->isEmpty()) {
             return $this->makeApiReturn('角色不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
@@ -156,7 +156,7 @@ trait AuthSetting
         (new Status())->runCheck();
 
         //检查角色是否存在
-        $group = (new UserMgAuthGroup())->where('id', $this->args['id'])->findOrEmpty();
+        $group = UserMgAuthGroup::where('id', $this->args['id'])->findOrEmpty();
         if ($group->isEmpty() || $group->status == -1) {
             return $this->makeApiReturn('角色不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
@@ -181,7 +181,7 @@ trait AuthSetting
             : $map[] = ['status', '<>', -1];
         $map[] = ['module', '=', empty($this->args['module']) ? 'admin' : $this->args['module']];
 
-        $model = (new UserMgAuthGroup())->where($map);
+        $model = UserMgAuthGroup::where($map);
         $count = $model->count();
         $dataList = $model->order('pid asc, sort desc, id asc')->select();
         $treeList = [];

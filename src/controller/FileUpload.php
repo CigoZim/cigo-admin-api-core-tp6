@@ -119,7 +119,7 @@ trait FileUpload
         }
         try {
             //保存文件信息到数据库
-            $file = (new Files())->where([
+            $file = Files::where([
                 ['platform', '=', 'qiniu'],
                 ['platform_bucket', '=', $this->args['bucket']],
                 ['platform_key', '=', $this->args['key']],
@@ -236,7 +236,7 @@ trait FileUpload
     {
         try {
             //保存文件信息到数据库
-            $file = (new Files())->where([
+            $file = Files::where([
                 ['platform', '=', 'tencent'],
                 ['platform_bucket', '=', $this->args['bucket']],
                 ['platform_key', '=', $this->args['key']],
@@ -346,7 +346,7 @@ trait FileUpload
         if (empty($fileId)) {
             return null;
         }
-        $info = (new Files())->where('id', $fileId)->findOrEmpty();
+        $info = Files::where('id', $fileId)->findOrEmpty();
         if ($info->isEmpty()) {
             return null;
         }

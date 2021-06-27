@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace cigoadmin\model;
 
 use cigoadmin\controller\FileUpload;
-use Qiniu\Auth;
-use think\facade\Config;
 use think\Model;
 
 /**
@@ -47,7 +45,7 @@ class User extends Model
     public function getAuthGroupInfoAttr($value, $data)
     {
         $ids = json_decode($data['auth_group'], true);
-        $groups = (new UserMgAuthGroup())->where('id', 'in', $ids)->select();
+        $groups = UserMgAuthGroup::where('id', 'in', $ids)->select();
         return $groups->isEmpty() ? [] : $groups->visible(['id', 'title']);
     }
 

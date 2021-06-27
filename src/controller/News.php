@@ -23,20 +23,20 @@ trait News
         (new AddNews())->runCheck();
         $this->args['create_time'] = time();
         $data = ModelNews::create($this->args);
-        $data = (new ModelNews())->where('id', $data->id)->append(['img_info', 'num_view_show'])->findOrEmpty();
+        $data = ModelNews::where('id', $data->id)->append(['img_info', 'num_view_show'])->findOrEmpty();
         return $this->success('添加成功', $data->isEmpty() ? null : $data);
     }
 
     public function editNews()
     {
         (new EditNews())->runCheck();
-        $data = (new ModelNews())->where('id', $this->args['id'])->findOrEmpty();
+        $data = ModelNews::where('id', $this->args['id'])->findOrEmpty();
         if ($data->isEmpty()) {
             return $this->error('新闻不存在', ['id' => $this->args['id']]);
         }
         $this->args['update_time'] = time();
         ModelNews::update($this->args);
-        $data = (new ModelNews())->where('id', $data->id)->append(['img_info', 'num_view_show'])->findOrEmpty();
+        $data = ModelNews::where('id', $data->id)->append(['img_info', 'num_view_show'])->findOrEmpty();
         return $this->success('修改成功', $data->isEmpty() ? null : $data);
     }
 
@@ -52,7 +52,7 @@ trait News
         if (!empty($this->args['keywords'])) {
             $map[] = ['name', 'like', '%' . $this->args['keywords'] . '%'];
         }
-        $model = (new ModelNews())->where($map);
+        $model = ModelNews::where($map);
         $count = $model->count();
         if (!empty($this->args['page']) && !empty($this->args['pageSize'])) {
             $model->page(intval($this->args['page']), intval($this->args['pageSize']));
@@ -69,7 +69,7 @@ trait News
     {
         (new Status())->runCheck();
 
-        $data = (new ModelNews())->where('id', $this->args['id'])->findOrEmpty();
+        $data = ModelNews::where('id', $this->args['id'])->findOrEmpty();
         if ($data->isEmpty() || $data->status == -1) {
             return $this->error('新闻不存在', ['id' => $this->args['id']]);
         }
