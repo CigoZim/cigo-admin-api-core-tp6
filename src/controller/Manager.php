@@ -46,7 +46,7 @@ trait Manager
             ['module', '=', $this->args['module']],
         ])->append(['show_name', 'img_info'])->findOrEmpty();
         if ($admin->isEmpty()) {
-            return $this->makeApiReturn('管理员不存在', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
+            return $this->makeApiReturn('用户不存在', [], ErrorCode::ClientError_AuthError, HttpReponseCode::ClientError_Forbidden);
         }
 
         //检查账户类型
@@ -135,7 +135,7 @@ trait Manager
         //检查管理员是否存在
         $manager = User::where('id', $this->args['id'])->findOrEmpty();
         if ($manager->isEmpty()) {
-            return $this->makeApiReturn('管理员不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
+            return $this->makeApiReturn('用户不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
         //检查用户名是否存在
         if (!empty($this->args['username'])) {
@@ -215,7 +215,7 @@ trait Manager
         //检查管理员是否存在
         $manager = User::where('id', $this->args['id'])->findOrEmpty();
         if ($manager->isEmpty() || $manager->status == -1) {
-            return $this->makeApiReturn('管理员不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
+            return $this->makeApiReturn('用户不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
         if ($manager->status == $this->args['status']) {
             return $this->makeApiReturn('无需重复操作', ['id' => $this->args['id'], 'status' => $this->args['status']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
@@ -268,7 +268,7 @@ trait Manager
         //检查管理员是否存在
         $manager = User::where('id', $this->args['id'])->append(['show_name', 'img_info', 'auth_group_info'])->hidden(['password'])->findOrEmpty();
         if ($manager->isEmpty()) {
-            return $this->makeApiReturn('管理员不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
+            return $this->makeApiReturn('用户不存在', ['id' => $this->args['id']], ErrorCode::ClientError_ArgsWrong, HttpReponseCode::ClientError_BadRequest);
         }
         return $this->makeApiReturn('修改成功', $manager);
     }
