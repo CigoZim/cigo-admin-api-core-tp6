@@ -84,7 +84,7 @@ trait FileUpload
                 'returnBody' => $qiniuConfig['returnBody']
             ];
 
-        $uploadToken= $auth->uploadToken(
+        $uploadToken = $auth->uploadToken(
             $bucket,
             null,
             $qiniuConfig['tokenDuration'],
